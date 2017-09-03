@@ -4,17 +4,17 @@ It doesn't support GET but this should be easy to update.
 
 Format:
 
-#include <iostream> // has string as well
-#include "postcgi" // only with "" in the same directory
+    #include <iostream> // has string as well
+    #include "postcgi" // only with "" in the same directory
 
-int main(){
-    cout << "Document-Type: application/json" << endl << endl;
-    Post post;
-    if (post.get("date") != "false"){
-        string date = post.get("date");
+    int main(){
+        cout << "Document-Type: application/json" << endl << endl;
+        Post post;
+        if (post.get("date") != "false"){
+            string date = post.get("date");
+        }
+        return 0;
     }
-    return 0;
-}
 
 or 
 
