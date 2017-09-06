@@ -81,27 +81,47 @@ class Post{
     public:
     string input;
 //we will locate the key providing programmer will never use the same input/textarea/etc. key in his html form
-    string get(string key) {
+    string get(const string &key) {
+        int start = begin(key);
+        if (start != -1){
+            int stop = end(key, start);
+//requesting utf8 itirator, end will be picked up by reference since it needs to be modified
+            utf8(start, stop);
+//and finally deducting the length from the actual modified end and returning the string (copied the first time) into the main call        
+            return input.substr(start, stop-start);
+        }//if
+        else return "false";
+    }//function
+    int begin(const string &key){
 //we are looking for the value after "="/ using find and its length to get towards the end and shifting by 1 as want to skip the "="
         int start = input.find(key);
         int stop = input.find("=", start);
         int found = stop+1;
-//now we want to find the ending either with "&"
-        int amper = input.find("&", found);
-// or the end of the string which we get from getenv() / if there is no "&" the value of amper will be -1/ size_t implicit value
-        int end = (amper >= found) ? amper : stringcount;
-//we check if key length is the same as found key avoiding (pass -> password) match
+        //we check if key length is the same as found key avoiding (pass -> password) match
         if ((stop-start) == key.length()){
-//requesting utf8 itirator, end will be picked up by reference since it needs to be modified
-            utf8(found, end);
-//and finally deducting the length from the actual modified end and returning the string (copied the first time) into the main call
-            int length = end-found;
-            return input.substr(found, length);
+        return found;
         }//if
-        else return "false";
+        else return -1;
+    }// function
+    int end(const string &key){
+//now we want to find the ending either with "&"
+        int start = begin(key);
+        int amper = input.find("&", start);
+// or the end of the string which we get from getenv() / if there is no "&" the value of amper will be -1/ size_t implicit value
+        int stop = (amper >= start) ? amper : stringcount;
+        return stop;
     }//function
+    int end(const string &key, int start){
+        int amper = input.find("&", start);
+// or the end of the string which we get from getenv() / if there is no "&" the value of amper will be -1/ size_t implicit value
+        int stop = (amper >= start) ? amper : stringcount;
+        return stop;
+    }// function
+    int size(const string &key){
+        return end(key) - begin(key);
+    }
     string get(string key, int len){
-                
+        
     }
     Post(){
 //constructor will set variables for correct length, since there is a certain chance that some post html forms will send some extra characters on top as a mistake,
