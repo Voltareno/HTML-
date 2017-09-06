@@ -72,7 +72,7 @@ class Post{
         char percent[] = "%";
         for (int i = start; i < end; i++) {
             if (input[i] == percent[0]){
-//calling the convert and receiving end pointer, sending i as an address since we need to manipulate it inside of convert
+//calling the convert and receiving end, i will be picked up by reference since we need to manipulate it inside of convert
 //making a seperate function mainly as we need to reset the private variables inside of convert
                 end -= convert(i);
             }//if
@@ -92,7 +92,7 @@ class Post{
         int end = (amper >= found) ? amper : stringcount;
 //we check if key length is the same as found key avoiding (pass -> password) match
         if ((stop-start) == key.length()){
-//sending pointers to utf8 itirator, sending end as an address since it will be modified there
+//requesting utf8 itirator, end will be picked up by reference since it needs to be modified
             utf8(found, end);
 //and finally deducting the length from the actual modified end and returning the string (copied the first time) into the main call
             int length = end-found;
