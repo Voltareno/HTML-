@@ -14,103 +14,106 @@ using namespace std;
 //here get only calls a function get
 class Post{
 //we need the correct length of the string and the string from cin
-int stringcount;
+    int stringcount;
 //first function to convert plus into space
-void plus_to_space() {
-char plus[] = "+";
-char space[] = " ";
-for (int i = 0; i < stringcount; ++i) { 
-if (input[i] == plus[0]) input[i] = space[0];
-} //for
-}// function
+    void plus_to_space() {
+        char plus[] = "+";
+        char space[] = " ";
+        for (int i = 0; i < stringcount; ++i) { 
+            if (input[i] == plus[0]) input[i] = space[0];
+        } //for
+    }// function
 //every utf8 has a header containing 1 for each byte (one byte has 0 but we will fix that later)
-int count_bytes(string bin){
-char one[] = "1";
-int a = 0;
-while ( bin[a] == one[0] ) {
-a++;
-}//while
-return a;
-}// function
+    int count_bytes(string bin){
+        char one[] = "1";
+        int a = 0;
+        while ( bin[a] == one[0] ) {
+            a++;
+        }//while
+        return a;
+    }// function
 //to count bytes we need to change the first byte to binary
-string byte2bin(string str){
-stringstream ss;
-unsigned n;
-ss << hex << str;
-ss >> n; 
-bitset<8> b(n);
-return b.to_string();
-}//function
+    string byte2bin(string str){
+        stringstream ss;
+        unsigned n;
+        ss << hex << str;
+        ss >> n; 
+        bitset<8> b(n);
+        return b.to_string();
+    }//function
 //as soon as we find % in the itirator we will call this function:
-int convert(int *i){
+    int convert(int &i){
 //we need amount of bytes, counter for multibyte char creator int a, we will count bytes and create multibyte replchar
-int bytecount;
-int a = 0;
-bytecount = count_bytes(byte2bin(input.substr(*i+1, 2)));
+        int bytecount;
+        int a = 0;
+        bytecount = count_bytes(byte2bin(input.substr(i+1, 2)));
 //one byte only has zero, so we need to make 0 -> 1
-if (bytecount == 0) bytecount = 1;
-char replchar[bytecount+1];
+        if (bytecount == 0) bytecount = 1;
+        char replchar[bytecount+1];
 //as long as counter is smaller then amount of bytes, we will insert a byte converted through long unsigned in hex
 //return pointer is NULL as we know the position and we will do it by multiplying the counter plus 1 to skip the "%"
-while (a < bytecount){
-replchar[a] = strtoul(input.substr(*i+a*3+1, 2).c_str(), NULL, 16);
-a++;
-}//while
+        while (a < bytecount){
+            replchar[a] = strtoul(input.substr(i+a*3+1, 2).c_str(), NULL, 16);
+            a++;
+        }//while
 //we will end the multibyte with \0 = null value / last a++ adds 1 and last cycle will be skipped while a is already higher by 1
-replchar[a] = '\0';
+        replchar[a] = '\0';
 //when the character is ready we will use it to replace three characters for each byte aka %C3
-input.replace(*i, 3*bytecount, replchar);
+        input.replace(i, 3*bytecount, replchar);
 //this might not be necessary but why to read the bytes we just inserted again, so we shift the itirator forward
 //the caller is already using i++ so we need to keep it -1
-*i = *i+bytecount-1;
+        i = i+bytecount-1;
 //returning end pointer since we changed the string
 //removing 3 bytes and inserting 1 for each will make it:
-return 2*bytecount;
-}//function
+        return 2*bytecount;
+    }//function
 //and the itirator
-void utf8(int start, int *end) {
-char percent[] = "%";
-for (int i = start; i < *end; i++) {
-if (input[i] == percent[0]){
-//calling the convert and receiving end pointer, sending i as an address since we need to manipulate it inside of convert
+    void utf8(int start, int &end) {
+        char percent[] = "%";
+        for (int i = start; i < end; i++) {
+            if (input[i] == percent[0]){
+//calling the convert and receiving end, i will be picked up by reference since we need to manipulate it inside of convert
 //making a seperate function mainly as we need to reset the private variables inside of convert
-*end -= convert(&i);
-}//if
-}//for
-}//function
-public:
-string input;
+                end -= convert(i);
+            }//if
+        }//for
+    }//function
+    public:
+    string input;
 //we will locate the key providing programmer will never use the same input/textarea/etc. key in his html form
-string get(string key) {
+    string get(string key) {
 //we are looking for the value after "="/ using find and its length to get towards the end and shifting by 1 as want to skip the "="
-int start = input.find(key);
-int stop = input.find("=", start);
-int found = stop+1;
+        int start = input.find(key);
+        int stop = input.find("=", start);
+        int found = stop+1;
 //now we want to find the ending either with "&"
-int amper = input.find("&", found);
+        int amper = input.find("&", found);
 // or the end of the string which we get from getenv() / if there is no "&" the value of amper will be -1/ size_t implicit value
-int end = (amper >= found) ? amper : stringcount;
+        int end = (amper >= found) ? amper : stringcount;
 //we check if key length is the same as found key avoiding (pass -> password) match
-if ((stop-start) == key.length()){
-//sending pointers to utf8 itirator, sending end as an address since it will be modified there
-utf8(found, &end);
+        if ((stop-start) == key.length()){
+//requesting utf8 itirator, end will be picked up by reference since it needs to be modified
+            utf8(found, end);
 //and finally deducting the length from the actual modified end and returning the string (copied the first time) into the main call
-int length = end-found;
-return input.substr(found, length);
-}//if
-else return "false";
-}//function
-Post(){
+            int length = end-found;
+            return input.substr(found, length);
+        }//if
+        else return "false";
+    }//function
+    string get(string key, int len){
+                
+    }
+    Post(){
 //constructor will set variables for correct length, since there is a certain chance that some post html forms will send some extra characters on top as a mistake,
 // set the input string and convert pluses to spaces, we are doing it first before real intentional pluses will be decoded
-if (getenv("CONTENT_LENGTH")){
-stringcount = atoi(getenv("CONTENT_LENGTH"));
-}//if
-else stringcount = 0;
+        if (getenv("CONTENT_LENGTH")){
+            stringcount = atoi(getenv("CONTENT_LENGTH"));
+        }//if
+        else stringcount = 0;
 // url encode guarantees no special characters and therefore getline is not necessary
-cin >> input;
-plus_to_space();
-}//constructor
+        cin >> input;
+        plus_to_space();
+    }//constructor
 }; // class
 
 // for optimal use please set all variables first since you don't want to run the function everytime you use the same variable
